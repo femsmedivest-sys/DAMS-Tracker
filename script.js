@@ -3,7 +3,7 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyR7DkRgTQXe-eIf3c979cX3rAI8EpdkvULJejrxLvoZJ8fbrBtt46g2zy-IftkN3ku/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxORabAegv0lY2kU9uNBiNFquuCqY2UeQtvkLOyROsnFeQQChL_wyh4Cy0rOPW1jGEk/exec';
 
 // Telegram Configuration (dapatkan dari @BotFather)
 const TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN_HERE';
