@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Asset Monitoring System (DAMS)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-drone"></i> Drone Asset Monitoring System</h1>
+            <p>Track and manage drone usage efficiently</p>
+        </header>
+
+        <!-- Main Navigation -->
+        <main class="main-content">
+            <div class="dashboard">
+                <div class="welcome-card">
+                    <h2>Welcome to DAMS</h2>
+                    <p>Select an option below to manage drone assets</p>
+                    <div class="system-status">
+                        <span class="status-indicator active">
+                            <i class="fas fa-circle"></i> System Active
+                        </span>
+                        <span class="status-indicator notification">
+                            <i class="fas fa-bell"></i> Notifications ON
+                        </span>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button id="borangBtn" class="main-btn">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Borang Pinjaman</span>
+                        <small>Form for borrowing drones</small>
+                    </button>
+                    
+                    <button id="statusBtn" class="main-btn">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>Status Drone</span>
+                        <small>Check drone status & history</small>
+                    </button>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <h3 id="currentTime">00:00:00</h3>
+                        <p>Current Time</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-day"></i>
+                        <h3 id="currentDate">Loading...</h3>
+                        <p>Today's Date</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-helicopter"></i>
+                        <h3 id="droneCount">0</h3>
+                        <p>Active Drones</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Section (Hidden by default) -->
+            <div id="formSection" class="form-section hidden">
+                <div class="form-header">
+                    <button id="backBtn" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </button>
+                    <h2><i class="fas fa-pen"></i> Borrow Drone Form</h2>
+                </div>
+                
+                <form id="droneForm">
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> Name:</label>
+                        <input type="text" id="name" required placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="site"><i class="fas fa-user"></i> From Site:</label>
+                        <select id="site" required>
+                            <option value="">Select site</option>
+                            <option value="HQ">HQ</option>
+                            <option value="MSB - BRI">MSB - BRI</option>
+                            <option value="MSB - OFFICE ROMS">MSB - OFFICE ROMS</option>
+                            <option value="MSB - OFFICE RONS">MSB - OFFICE RONS</option>
+                            <option value="MSB - OFFICE RONJ">MSB - OFFICE RONJ</option>
+                            <option value="MSB - HSA">MSB - HSA</option>
+                            <option value="MSB - MKA">MSB - MKA</option>
+                            <option value="MSB - HTJ">MSB - HTJ</option>
+                            <option value="MSB - KTG">MSB - KTG</option>
+                            <option value="MSB - HSI">MSB - HSI</option>
+                            <option value="MSB - PER">MSB - PER</option>
+                            <option value="MSB - MKJ">MSB - MKJ</option>
+                            <option value="MSB - AGJ">MSB - AGJ</option>
+                            <option value="MSB - TGK">MSB - TGK</option>
+                            <option value="MSB - MER">MSB - MER</option>
+                            <option value="MSB - JLB">MSB - JLB</option>
+                            <option value="MSB - JMP">MSB - JMP</option>
+                            <option value="MSB - PON">MSB - PON</option>
+                            <option value="MSB - KUL">MSB - KUL</option>
+                            <option value="MSB - JSN">MSB - JSN</option>
+                            <option value="MSB - KLN">MSB - KLN</option>
+                            <option value="MSB - BPH">MSB - BPH</option>
+                            <option value="MSB - PDX">MSB - PDX</option>
+                            <option value="MSB - MUR">MSB - MUR</option>
+                            <option value="MSB - SGT">MSB - SGT</option>
+                            <option value="MSB - TMP">MSB - TMP</option>
+                            <option value="MSB - KPL">MSB - KPL</option>
+                            <option value="Other">Other (Please specify)</option>
+                        </select>
+                        <input type="text" id="otherSite" class="hidden" placeholder="Please specify other site..." style="margin-top: 10px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="model"><i class="fas fa-robot"></i> Model Drone:</label>
+                        <select id="model" required>
+                            <option value="">Select drone model</option>
+                            <option value="DJI Matrice 4T">DJI Matrice 4T</option>
+                            <option value="DJI Phantom 4 Pro">DJI Phantom 4 Pro</option>
+                            <option value="DJI Flip">DJI Flip</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="purpose"><i class="fas fa-bullseye"></i> Purpose of Fly:</label>
+                        <select id="purpose" required>
+                            <option value="">Select purpose</option>
+                            <option value="Site Inspection">Site Inspection</option>
+                            <option value="Survey & Mapping">Survey & Mapping</option>
+                            <option value="Aerial Photography">Aerial Photography</option>
+                            <option value="Monitoring & Surveillance">Monitoring & Surveillance</option>
+                            <option value="Emergency Response">Emergency Response</option>
+                            <option value="Training">Training</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="destination"><i class="fas fa-route"></i> Fly Destination:</label>
+                        <input type="text" id="destination" required placeholder="e.g., Construction Site A, Building B, etc.">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dateTaken"><i class="fas fa-calendar"></i> Date Taken:</label>
+                            <input type="date" id="dateTaken" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="timeTaken"><i class="fas fa-clock"></i> Time Taken:</label>
+                            <input type="time" id="timeTaken" required>
+                        </div>
+                    </div>
+
+                    <!-- Notification Preferences -->
+                    <div class="notification-settings">
+                        <h3><i class="fas fa-bell"></i> Notification Preferences</h3>
+                        <div class="notification-options">
+                            <label>
+                                <input type="checkbox" id="notifyTelegram" checked>
+                                <i class="fab fa-telegram"></i> Send Telegram Notification
+                            </label>
+                            <label>
+                                <input type="checkbox" id="notifyEmail" checked>
+                                <i class="fas fa-envelope"></i> Send Email Notification
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Submit Booking Request
+                    </button>
+                </form>
+                
+                <div id="formMessage" class="message hidden"></div>
+            </div>
+
+            <!-- Status Section (Hidden by default) -->
+            <div id="statusSection" class="status-section hidden">
+                <div class="form-header">
+                    <button id="backStatusBtn" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </button>
+                    <h2><i class="fas fa-tasks"></i> Drone Status & History</h2>
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-controls">
+                        <input type="text" id="searchInput" placeholder="Search by name, model, or destination...">
+                        <select id="siteFilter">
+                            <option value="">All Sites</option>
+                            <option value="HQ">HQ</option>
+                            <option value="MSB - BRI">MSB - BRI</option>
+                            <option value="MSB - OFFICE ROMS">MSB - OFFICE ROMS</option>
+                            <option value="MSB - OFFICE RONS">MSB - OFFICE RONS</option>
+                            <option value="MSB - OFFICE RONJ">MSB - OFFICE RONJ</option>
+                            <option value="MSB - HSA">MSB - HSA</option>
+                            <option value="MSB - MKA">MSB - MKA</option>
+                            <option value="MSB - HTJ">MSB - HTJ</option>
+                            <option value="MSB - KTG">MSB - KTG</option>
+                            <option value="MSB - HSI">MSB - HSI</option>
+                            <option value="MSB - PER">MSB - PER</option>
+                            <option value="MSB - MKJ">MSB - MKJ</option>
+                            <option value="MSB - AGJ">MSB - AGJ</option>
+                            <option value="MSB - TGK">MSB - TGK</option>
+                            <option value="MSB - MER">MSB - MER</option>
+                            <option value="MSB - JLB">MSB - JLB</option>
+                            <option value="MSB - JMP">MSB - JMP</option>
+                            <option value="MSB - PON">MSB - PON</option>
+                            <option value="MSB - KUL">MSB - KUL</option>
+                            <option value="MSB - JSN">MSB - JSN</option>
+                            <option value="MSB - KLN">MSB - KLN</option>
+                            <option value="MSB - BPH">MSB - BPH</option>
+                            <option value="MSB - PDX">MSB - PDX</option>
+                            <option value="MSB - MUR">MSB - MUR</option>
+                            <option value="MSB - SGT">MSB - SGT</option>
+                            <option value="MSB - TMP">MSB - TMP</option>
+                            <option value="MSB - KPL">MSB - KPL</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <select id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="Booked">Booked</option>
+                            <option value="Using">Using</option>
+                            <option value="Returned">Returned</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <button id="refreshBtn" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="statusList" class="status-list">
+                    <!-- Status cards will be loaded here -->
+                </div>
+                
+                <div id="statusMessage" class="message hidden"></div>
+
+                <!-- Export Options -->
+                <div class="export-section">
+                    <button id="exportBtn" class="export-btn">
+                        <i class="fas fa-file-export"></i> Export to Excel
+                    </button>
+                    <button id="printBtn" class="export-btn">
+                        <i class="fas fa-print"></i> Print Report
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>DAMS &copy; 2024 | Drone Asset Monitoring System v2.0</p>
+                <div class="footer-links">
+                    <span><i class="fas fa-phone"></i> Support: 03-1234 5678</span>
+                    <span><i class="fas fa-envelope"></i> Email: support@dams.com</span>
+                </div>
+                <p class="footer-info">
+                    <i class="fas fa-shield-alt"></i> All drone usage is monitored and recorded
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for Actions -->
+    <div id="actionModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle">Confirm Action</h3>
+            <p id="modalMessage">Are you sure you want to proceed?</p>
+            <div class="modal-buttons">
+                <button id="cancelModal" class="btn-secondary">Cancel</button>
+                <button id="confirmModal" class="btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
