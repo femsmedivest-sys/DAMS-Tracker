@@ -3,7 +3,7 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBSN3UNE36wPg0XylfT8MsI07G-k-qttbNuyAp4ilEMgqDR-UnBvAk6hqGhDTd6agH/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFKKsG-6QINQVwcYL96gHUPTQZtiVcG65dKCnKONB8mG29ZZfqbcVlnWZmOGSfRSvR/exec';
 // Telegram Configuration (dapatkan dari @BotFather)
 const TELEGRAM_BOT_TOKEN = '9486805075:AAGVWWHMdhjaOAEmjryGk8eBFn3J4Oh0E5A';
 const TELEGRAM_CHAT_ID = '-2003366033806';
@@ -248,11 +248,11 @@ async function submitToGoogleSheets(data) {
     };
     
     try {
+        // ✅ CRITICAL FIX: Use text/plain Content-Type
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'cors', // TAMBAH INI
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain;charset=utf-8', // NOT application/json
             },
             body: JSON.stringify(payload)
         });
@@ -267,7 +267,6 @@ async function submitToGoogleSheets(data) {
         
     } catch (error) {
         console.error('Error submitting to Google Sheets:', error);
-        // Untuk debug, log URL dan payload
         console.log('URL:', GOOGLE_SCRIPT_URL);
         console.log('Payload:', payload);
         throw error;
@@ -390,11 +389,11 @@ async function sendEmailNotification(type, data) {
     };
     
     try {
+        // ✅ CRITICAL FIX: Use text/plain Content-Type here too
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'cors', // TAMBAH INI
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain;charset=utf-8', // NOT application/json
             },
             body: JSON.stringify(emailData)
         });
