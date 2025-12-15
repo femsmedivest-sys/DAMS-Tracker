@@ -1,47 +1,81 @@
-/* Reset & Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* =========================== */
+/* BACKGROUND WITH DRONE IMAGE */
+/* =========================== */
+.background-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
 }
 
-:root {
-    --primary: #2c3e50;
-    --secondary: #3498db;
-    --success: #27ae60;
-    --warning: #f39c12;
-    --danger: #e74c3c;
-    --light: #ecf0f1;
-    --dark: #2c3e50;
-    --gray: #95a5a6;
-    --telegram: #0088cc;
-    --email: #ea4335;
+.drone-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.2; /* Adjust transparency */
 }
 
+.background-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(102, 126, 234, 0.061) 0%, 
+        rgba(118, 75, 162, 0.061) 100%);
+    mix-blend-mode: multiply;
+}
+
+/* Update body background */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: url('drone 2.webp') no-repeat center center fixed;
+    background-size: cover;
     min-height: 100vh;
     padding: 20px;
     line-height: 1.6;
+    position: relative;
 }
 
+/* Dark overlay for better readability */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2); /* Dark overlay */
+    z-index: -1;
+}
+
+/* Update container background */
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    background: white;
+    background: rgba(255, 255, 255, 0.191); /* 88% opacity putih */
+    /*backdrop-filter: blur(10px); /* Glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     overflow: hidden;
     min-height: 90vh;
 }
 
-/* Header */
+/* Update header transparency */
 .header {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, 
+        rgba(44, 62, 80, 0.9), 
+        rgba(52, 152, 219, 0.85));
     color: white;
     padding: 2rem;
     text-align: center;
+    backdrop-filter: blur(5px);
 }
 
 .header h1 {
@@ -67,8 +101,11 @@ body {
     text-align: center;
 }
 
+/* Update cards transparency */
 .welcome-card {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     padding: 2rem;
     border-radius: 15px;
     margin-bottom: 2rem;
@@ -116,7 +153,9 @@ body {
 }
 
 .stat-card {
-    background: white;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     padding: 1.5rem;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -154,7 +193,9 @@ body {
 }
 
 .main-btn {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, 
+        rgba(44, 62, 80, 0.9), 
+        rgba(52, 152, 219, 0.85));
     color: white;
     border: none;
     padding: 2rem;
@@ -168,6 +209,7 @@ body {
     justify-content: center;
     gap: 15px;
     min-height: 180px;
+    backdrop-filter: blur(5px);
 }
 
 .main-btn:hover {
@@ -218,7 +260,7 @@ body {
 }
 
 .back-btn:hover {
-    background: #7f8c8d;
+    background: #687273;
 }
 
 .form-group {
@@ -240,7 +282,8 @@ body {
 .form-group textarea {
     width: 100%;
     padding: 1rem;
-    border: 2px solid #ddd;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(221, 221, 221, 0.6);
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s;
@@ -285,9 +328,11 @@ textarea {
 .notification-settings {
     margin: 2rem 0;
     padding: 1.5rem;
-    background: #f8f9fa;
+    background: rgba(248, 249, 250, 0.9);
+    backdrop-filter: blur(5px);
     border-radius: 10px;
     border-left: 4px solid var(--secondary);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .notification-settings h3 {
@@ -311,13 +356,13 @@ textarea {
     cursor: pointer;
     padding: 0.8rem 1.2rem;
     border-radius: 6px;
-    background: white;
+    background: rgba(255, 255, 255, 0.9);
     transition: all 0.3s;
-    border: 2px solid #ddd;
+    border: 2px solid rgba(221, 221, 221, 0.6);
 }
 
 .notification-options label:hover {
-    background: #e3f2fd;
+    background: rgba(227, 242, 253, 0.9);
     border-color: var(--secondary);
 }
 
@@ -344,6 +389,7 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    backdrop-filter: blur(5px);
 }
 
 .submit-btn:hover {
@@ -370,7 +416,8 @@ textarea {
 
 #searchInput, #siteFilter, #statusFilter {
     padding: 1rem;
-    border: 2px solid #ddd;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(221, 221, 221, 0.6);
     border-radius: 8px;
     font-size: 1rem;
 }
@@ -386,6 +433,7 @@ textarea {
     align-items: center;
     gap: 8px;
     transition: background 0.3s;
+    backdrop-filter: blur(5px);
 }
 
 .refresh-btn:hover {
@@ -399,7 +447,9 @@ textarea {
 }
 
 .status-card {
-    background: white;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -418,12 +468,12 @@ textarea {
     align-items: center;
     margin-bottom: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(238, 238, 238, 0.6);
 }
 
 .site-badge {
     display: inline-block;
-    background: #e3f2fd;
+    background: rgba(227, 242, 253, 0.9);
     color: #1565c0;
     padding: 4px 8px;
     border-radius: 12px;
@@ -440,22 +490,22 @@ textarea {
 }
 
 .status-indicator.booked {
-    background: #ffeaa7;
+    background: rgba(255, 234, 167, 0.9);
     color: #e17055;
 }
 
 .status-indicator.using {
-    background: #a3e4d7;
+    background: rgba(163, 228, 215, 0.9);
     color: #1d8348;
 }
 
 .status-indicator.returned {
-    background: #d7bde2;
+    background: rgba(215, 189, 226, 0.9);
     color: #8e44ad;
 }
 
 .status-indicator.cancelled {
-    background: #f5b7b1;
+    background: rgba(245, 183, 177, 0.9);
     color: #78281f;
 }
 
@@ -494,18 +544,19 @@ textarea {
     justify-content: center;
     gap: 8px;
     transition: all 0.3s;
+    backdrop-filter: blur(5px);
 }
 
 .btn-cancel {
-    background: #f8d7da;
+    background: rgba(248, 215, 218, 0.9);
     color: var(--danger);
-    border: 2px solid #f8d7da;
+    border: 2px solid rgba(248, 215, 218, 0.9);
 }
 
 .btn-return {
-    background: #d1ecf1;
+    background: rgba(209, 236, 241, 0.9);
     color: #0c5460;
-    border: 2px solid #d1ecf1;
+    border: 2px solid rgba(209, 236, 241, 0.9);
 }
 
 .btn-cancel:hover, .btn-return:hover {
@@ -514,12 +565,12 @@ textarea {
 }
 
 .btn-cancel:hover {
-    background: #f1b0b7;
+    background: rgba(241, 176, 183, 0.9);
     border-color: var(--danger);
 }
 
 .btn-return:hover {
-    background: #bee5eb;
+    background: rgba(190, 229, 235, 0.9);
     border-color: #0c5460;
 }
 
@@ -527,14 +578,14 @@ textarea {
 .export-section {
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 2px solid #eee;
+    border-top: 2px solid rgba(238, 238, 238, 0.6);
     display: flex;
     gap: 1rem;
     justify-content: center;
 }
 
 .export-btn {
-    background: var(--primary);
+    background: rgba(44, 62, 80, 0.9);
     color: white;
     border: none;
     padding: 0.8rem 1.5rem;
@@ -544,10 +595,11 @@ textarea {
     align-items: center;
     gap: 8px;
     transition: background 0.3s;
+    backdrop-filter: blur(5px);
 }
 
 .export-btn:hover {
-    background: #1a252f;
+    background: rgba(26, 37, 47, 0.9);
 }
 
 /* Message Styles */
@@ -557,24 +609,27 @@ textarea {
     margin-top: 2rem;
     text-align: center;
     font-weight: 500;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .message.success {
-    background: #d4edda;
+    background: rgba(212, 237, 218, 0.9);
     color: #155724;
-    border: 1px solid #c3e6cb;
+    border: 1px solid rgba(195, 230, 203, 0.9);
 }
 
 .message.error {
-    background: #f8d7da;
+    background: rgba(248, 215, 218, 0.9);
     color: #721c24;
-    border: 1px solid #f5c6cb;
+    border: 1px solid rgba(245, 198, 203, 0.9);
 }
 
 .message.info {
-    background: #d1ecf1;
+    background: rgba(209, 236, 241, 0.9);
     color: #0c5460;
-    border: 1px solid #bee5eb;
+    border: 1px solid rgba(190, 229, 235, 0.9);
 }
 
 /* Modal */
@@ -584,7 +639,7 @@ textarea {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.7);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -592,7 +647,9 @@ textarea {
 }
 
 .modal-content {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     padding: 2rem;
     border-radius: 12px;
     max-width: 500px;
@@ -613,6 +670,7 @@ textarea {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
+    backdrop-filter: blur(5px);
 }
 
 .btn-primary {
@@ -644,7 +702,7 @@ textarea {
 .spinner {
     width: 50px;
     height: 50px;
-    border: 5px solid #f3f3f3;
+    border: 5px solid rgba(243, 243, 243, 0.9);
     border-top: 5px solid var(--secondary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -656,12 +714,13 @@ textarea {
     100% { transform: rotate(360deg); }
 }
 
-/* Footer */
+/* Footer transparency */
 .footer {
-    background: var(--primary);
+    background: rgba(44, 62, 80, 0.9);
     color: white;
     padding: 1.5rem;
     margin-top: 3rem;
+    backdrop-filter: blur(5px);
 }
 
 .footer-content {
@@ -674,7 +733,7 @@ textarea {
     gap: 2rem;
     margin: 1rem 0;
     font-size: 0.9rem;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .footer-links span {
@@ -691,6 +750,46 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 8px;
+}
+
+/* Drone Theme Elements */
+.header h1 i.fa-drone {
+    color: #4FC3F7; /* Blue drone color */
+    text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+}
+
+/* Drone icon glow effect */
+.stat-card i.fa-helicopter {
+    color: #4FC3F7;
+    text-shadow: 0 0 15px rgba(79, 195, 247, 0.7);
+}
+
+/* Status indicator drone colors */
+.status-indicator.using {
+    background: rgba(163, 228, 215, 0.9);
+    color: #1d8348;
+    border: 2px solid #4FC3F7;
+}
+
+/* Color Variables */
+:root {
+    --primary: #000000;
+    --secondary: #3498db;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+    --light: #ecf0f1;
+    --dark: #2c3e50;
+    --gray: #95a5a6;
+    --telegram: #0088cc;
+    --email: #ea4335;
+}
+
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 /* Utility Classes */

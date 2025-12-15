@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,15 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
+
+    <!-- Background dengan gambar drone -->
+    <div class="background-container">
+        <img src="drone 2.webp" alt="Drone Background" class="drone-bg">
+        <div class="background-overlay"></div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <header class="header">
@@ -37,7 +46,7 @@
                         <span>Borang Pinjaman</span>
                         <small>Form for borrowing drones</small>
                     </button>
-                    
+
                     <button id="statusBtn" class="main-btn">
                         <i class="fas fa-satellite-dish"></i>
                         <span>Status Drone</span>
@@ -73,13 +82,13 @@
                     </button>
                     <h2><i class="fas fa-pen"></i> Borrow Drone Form</h2>
                 </div>
-                
+
                 <form id="droneForm">
                     <div class="form-group">
                         <label for="name"><i class="fas fa-user"></i> Name:</label>
                         <input type="text" id="name" required placeholder="Enter your full name">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="site"><i class="fas fa-user"></i> From Site:</label>
                         <select id="site" required>
@@ -113,9 +122,10 @@
                             <option value="MSB - KPL">MSB - KPL</option>
                             <option value="Other">Other (Please specify)</option>
                         </select>
-                        <input type="text" id="otherSite" class="hidden" placeholder="Please specify other site..." style="margin-top: 10px;">
+                        <input type="text" id="otherSite" class="hidden" placeholder="Please specify other site..."
+                            style="margin-top: 10px;">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="model"><i class="fas fa-robot"></i> Model Drone:</label>
                         <select id="model" required>
@@ -125,7 +135,7 @@
                             <option value="DJI Flip">DJI Flip</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="purpose"><i class="fas fa-bullseye"></i> Purpose of Fly:</label>
                         <select id="purpose" required>
@@ -139,18 +149,19 @@
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="destination"><i class="fas fa-route"></i> Fly Destination:</label>
-                        <input type="text" id="destination" required placeholder="e.g., Construction Site A, Building B, etc.">
+                        <input type="text" id="destination" required
+                            placeholder="e.g., Construction Site A, Building B, etc.">
                     </div>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="dateTaken"><i class="fas fa-calendar"></i> Date Taken:</label>
                             <input type="date" id="dateTaken" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="timeTaken"><i class="fas fa-clock"></i> Time Taken:</label>
                             <input type="time" id="timeTaken" required>
@@ -171,12 +182,12 @@
                             </label>
                         </div>
                     </div>
-                    
+
                     <button type="submit" class="submit-btn">
                         <i class="fas fa-paper-plane"></i> Submit Booking Request
                     </button>
                 </form>
-                
+
                 <div id="formMessage" class="message hidden"></div>
             </div>
 
@@ -188,7 +199,7 @@
                     </button>
                     <h2><i class="fas fa-tasks"></i> Drone Status & History</h2>
                 </div>
-                
+
                 <div class="filter-section">
                     <div class="filter-controls">
                         <input type="text" id="searchInput" placeholder="Search by name, model, or destination...">
@@ -235,11 +246,11 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div id="statusList" class="status-list">
                     <!-- Status cards will be loaded here -->
                 </div>
-                
+
                 <div id="statusMessage" class="message hidden"></div>
 
                 <!-- Export Options -->
@@ -257,10 +268,10 @@
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p>DAMS &copy; 2024 | Drone Asset Monitoring System v2.0</p>
+                <p>DAMS &copy; 2025 | Drone Asset Monitoring System v2.0</p>
                 <div class="footer-links">
-                    <span><i class="fas fa-phone"></i> Support: 03-1234 5678</span>
-                    <span><i class="fas fa-envelope"></i> Email: support@dams.com</span>
+                    <span><i class="fas fa-phone"></i> Support: 011-3123 4648</span>
+                    <span><i class="fas fa-envelope"></i> Email Support: muhammad.waliuddin@medivest.com.my</span>
                 </div>
                 <p class="footer-info">
                     <i class="fas fa-shield-alt"></i> All drone usage is monitored and recorded
@@ -289,4 +300,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>

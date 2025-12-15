@@ -3,11 +3,11 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxORabAegv0lY2kU9uNBiNFquuCqY2UeQtvkLOyROsnFeQQChL_wyh4Cy0rOPW1jGEk/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxghdJc09CqTsd0o9ElSOH9oyaQAxqe87VgUY2ka1NntL_GRKfJ-aizmZv93S1Yx_Pf/exec';
 
 // Telegram Configuration (dapatkan dari @BotFather)
-const TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN_HERE';
-const TELEGRAM_CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID_HERE';
+const TELEGRAM_BOT_TOKEN = '9486805075:AAGVWWHMdhjaOAEmjryGk8eBFn3J4Oh0E5A';
+const TELEGRAM_CHAT_ID = '-2003366033806';
 
 // Email Configuration
 const ADMIN_EMAIL = 'muhammad.waliuddin@medivest.com.my';
@@ -252,15 +252,26 @@ async function submitToGoogleSheets(data) {
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'cors', // TAMBAH INI
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload)
         });
         
-        return await response.json();
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Google Sheets response:', result);
+        return result;
+        
     } catch (error) {
         console.error('Error submitting to Google Sheets:', error);
+        // Untuk debug, log URL dan payload
+        console.log('URL:', GOOGLE_SCRIPT_URL);
+        console.log('Payload:', payload);
         throw error;
     }
 }
@@ -383,14 +394,15 @@ async function sendEmailNotification(type, data) {
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'cors', // TAMBAH INI
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(emailData)
         });
         
-        console.log('Email notification sent');
-        return true;
+        console.log('Email notification response:', response.ok);
+        return response.ok;
     } catch (error) {
         console.error('Error sending email notification:', error);
         return false;
