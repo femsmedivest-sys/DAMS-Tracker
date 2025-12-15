@@ -3,7 +3,7 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFKKsG-6QINQVwcYL96gHUPTQZtiVcG65dKCnKONB8mG29ZZfqbcVlnWZmOGSfRSvR/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHOu4O29RId5s0h3wBOA0NaUEpf02Siw8pHZwZiEwzbYkHgZxAzwZm2AIrwajkllZg/exec';
 // Telegram Configuration (dapatkan dari @BotFather)
 const TELEGRAM_BOT_TOKEN = '9486805075:AAGVWWHMdhjaOAEmjryGk8eBFn3J4Oh0E5A';
 const TELEGRAM_CHAT_ID = '-2003366033806';
@@ -126,7 +126,7 @@ borangBtn.addEventListener('click', () => {
 
 statusBtn.addEventListener('click', () => {
     showSection(statusSection);
-    loadStatusData();
+    loadStatusData(); purpose
 });
 
 backBtn.addEventListener('click', () => {
@@ -185,7 +185,10 @@ droneForm.addEventListener('submit', async (e) => {
         // Submit to Google Sheets
         const response = await submitToGoogleSheets(formData);
         
-        if (response.result === 'success') {
+        console.log('📋 Form submission response:', response); // ✅ ADD THIS LINE
+        
+        // ✅ **BETULKAN CHECK INI**:
+        if (response.success === true) {  // BUKAN response.result === 'success'
             // Send notifications if enabled
             if (formData.notifyTelegram) {
                 await sendTelegramNotification('booking', formData);
@@ -208,7 +211,7 @@ droneForm.addEventListener('submit', async (e) => {
             }, 3000);
             
         } else {
-            throw new Error('Submission failed');
+            throw new Error(response.message || 'Submission failed');
         }
     } catch (error) {
         console.error('Error submitting form:', error);
@@ -248,53 +251,34 @@ async function submitToGoogleSheets(data) {
     };
     
     try {
-        // ✅ CRITICAL FIX: Use text/plain Content-Type
+        console.log('📤 Sending to Google Sheets...'); // ✅ ADD THIS
+        console.log('URL:', GOOGLE_SCRIPT_URL); // ✅ ADD THIS
+        
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'text/plain;charset=utf-8', // NOT application/json
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify(payload)
         });
         
+        console.log('📥 Response status:', response.status, response.statusText); // ✅ ADD THIS
+        
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
         }
         
         const result = await response.json();
-        console.log('Google Sheets response:', result);
-        return result;
+        console.log('✅ Google Sheets response:', result);
+        
+        // ✅ **PASTIKAN RETURN STRUCTURE INI SAMA DENGAN YANG CODE KAU GUNA**
+        return result; // Apps Script kau return {success: true, message: ..., result: 'success'}
         
     } catch (error) {
-        console.error('Error submitting to Google Sheets:', error);
+        console.error('❌ Error submitting to Google Sheets:', error);
         console.log('URL:', GOOGLE_SCRIPT_URL);
         console.log('Payload:', payload);
         throw error;
-    }
-}
-
-async function loadStatusData() {
-    showLoading();
-    
-    try {
-        // In production, fetch from Google Sheets
-        // const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData`);
-        // currentData = await response.json();
-        
-        // For demo, use mock data
-        currentData = getMockData();
-        
-        displayStatusData(currentData);
-        updateDroneCount();
-        
-        const statusMessage = document.getElementById('statusMessage');
-        statusMessage.classList.add('hidden');
-        
-    } catch (error) {
-        console.error('Error loading data:', error);
-        showMessage('statusMessage', 'Failed to load data. Please try again.', 'error');
-    } finally {
-        hideLoading();
     }
 }
 
