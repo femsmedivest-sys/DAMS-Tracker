@@ -3,12 +3,10 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxghdJc09CqTsd0o9ElSOH9oyaQAxqe87VgUY2ka1NntL_GRKfJ-aizmZv93S1Yx_Pf/exec';
-
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzUv9fBwjTwo3mzl7yg5azkPobdTSc5LlNQ_17GGs9Rn0d_dI9pZcE8XJlWYUNzT5M/exec';
 // Telegram Configuration (dapatkan dari @BotFather)
 const TELEGRAM_BOT_TOKEN = '9486805075:AAGVWWHMdhjaOAEmjryGk8eBFn3J4Oh0E5A';
 const TELEGRAM_CHAT_ID = '-2003366033806';
-
 // Email Configuration
 const ADMIN_EMAIL = 'muhammad.waliuddin@medivest.com.my';
 
