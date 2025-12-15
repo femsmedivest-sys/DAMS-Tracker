@@ -3,7 +3,7 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHOu4O29RId5s0h3wBOA0NaUEpf02Siw8pHZwZiEwzbYkHgZxAzwZm2AIrwajkllZg/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBSN3UNE36wPg0XylfT8MsI07G-k-qttbNuyAp4ilEMgqDR-UnBvAk6hqGhDTd6agH/exec';
 // Telegram Configuration (dapatkan dari @BotFather)
 const TELEGRAM_BOT_TOKEN = '9486805075:AAGVWWHMdhjaOAEmjryGk8eBFn3J4Oh0E5A';
 const TELEGRAM_CHAT_ID = '-2003366033806';
@@ -126,7 +126,7 @@ borangBtn.addEventListener('click', () => {
 
 statusBtn.addEventListener('click', () => {
     showSection(statusSection);
-    loadStatusData(); purpose
+    loadStatusData();
 });
 
 backBtn.addEventListener('click', () => {
@@ -152,7 +152,7 @@ function hideAllSections() {
 }
 
 // ============================================
-// FORM SUBMISSION WITH TELEGRAM & EMAIL
+// FORM SUBMISSION WITH TELEGRAM & EMAIL - FIXED VERSION
 // ============================================
 droneForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -185,10 +185,10 @@ droneForm.addEventListener('submit', async (e) => {
         // Submit to Google Sheets
         const response = await submitToGoogleSheets(formData);
         
-        console.log('📋 Form submission response:', response); // ✅ ADD THIS LINE
+        console.log('📋 Form submission response:', response);
         
-        // ✅ **BETULKAN CHECK INI**:
-        if (response.success === true) {  // BUKAN response.result === 'success'
+        // ✅ CRITICAL FIX: Check response.success BUKAN response.result
+        if (response.success === true) {  
             // Send notifications if enabled
             if (formData.notifyTelegram) {
                 await sendTelegramNotification('booking', formData);
@@ -242,7 +242,7 @@ function clearForm() {
 }
 
 // ============================================
-// GOOGLE SHEETS INTEGRATION
+// GOOGLE SHEETS INTEGRATION - FIXED VERSION
 // ============================================
 async function submitToGoogleSheets(data) {
     const payload = {
@@ -250,19 +250,19 @@ async function submitToGoogleSheets(data) {
         data: data
     };
     
+    console.log('📤 Sending to Google Sheets...');
+    
     try {
-        console.log('📤 Sending to Google Sheets...'); // ✅ ADD THIS
-        console.log('URL:', GOOGLE_SCRIPT_URL); // ✅ ADD THIS
-        
+        // ✅ CRITICAL FIX: Use text/plain Content-Type
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
+                'Content-Type': 'text/plain;charset=utf-8', // NOT application/json
             },
             body: JSON.stringify(payload)
         });
         
-        console.log('📥 Response status:', response.status, response.statusText); // ✅ ADD THIS
+        console.log('📥 Response status:', response.status, response.statusText);
         
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
@@ -270,15 +270,39 @@ async function submitToGoogleSheets(data) {
         
         const result = await response.json();
         console.log('✅ Google Sheets response:', result);
-        
-        // ✅ **PASTIKAN RETURN STRUCTURE INI SAMA DENGAN YANG CODE KAU GUNA**
-        return result; // Apps Script kau return {success: true, message: ..., result: 'success'}
+        return result;
         
     } catch (error) {
         console.error('❌ Error submitting to Google Sheets:', error);
         console.log('URL:', GOOGLE_SCRIPT_URL);
         console.log('Payload:', payload);
         throw error;
+    }
+}
+
+async function loadStatusData() {
+    showLoading();
+    
+    try {
+        // In production, fetch from Google Sheets
+        // UNCOMMENT LINE INI UNTUK PRODUCTION:
+        // const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData`);
+        // currentData = await response.json();
+        
+        // For demo, use mock data (COMMENT LINE INI UNTUK PRODUCTION)
+        currentData = getMockData();
+        
+        displayStatusData(currentData);
+        updateDroneCount();
+        
+        const statusMessage = document.getElementById('statusMessage');
+        statusMessage.classList.add('hidden');
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        showMessage('statusMessage', 'Failed to load data. Please try again.', 'error');
+    } finally {
+        hideLoading();
     }
 }
 
@@ -363,7 +387,7 @@ async function sendTelegramNotification(type, data) {
 }
 
 // ============================================
-// EMAIL NOTIFICATION FUNCTIONS
+// EMAIL NOTIFICATION FUNCTIONS - FIXED VERSION
 // ============================================
 async function sendEmailNotification(type, data) {
     const emailData = {
@@ -373,16 +397,16 @@ async function sendEmailNotification(type, data) {
     };
     
     try {
-        // ✅ CRITICAL FIX: Use text/plain Content-Type here too
+        // ✅ USE SAME Content-Type AS SUBMIT FUNCTION
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'text/plain;charset=utf-8', // NOT application/json
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify(emailData)
         });
         
-        console.log('Email notification response:', response.ok);
+        console.log('📧 Email notification response:', response.ok);
         return response.ok;
     } catch (error) {
         console.error('Error sending email notification:', error);
@@ -897,3 +921,7 @@ async function sendTelegramMessage(message) {
         return null;
     }
 }
+
+// ============================================
+// END OF FILE
+// ============================================
