@@ -3,10 +3,10 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzq-mS63FfWxXw0B54gdXKdQXEjOSZaGPRTvrzI0Sltx6S3ETbjJyyQUwmstR2842VY/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw8MW9EUuBDa9QoPOk21_96bgSbko1LwjI8Qg8NBswCqvt-Fm1_bbiJUyrBfksDlVP/exec';
 // Telegram Configuration (dapatkan dari @BotFather)
-const TELEGRAM_BOT_TOKEN = '9486805075:AAGVWWHMdhjaOAEmjryGk8eBFn3J4Oh0E5A';
-const TELEGRAM_CHAT_ID = '-2003366033806';
+const TELEGRAM_BOT_TOKEN = '8354996644:AAG2GEND5Ry4LFFwwe7VyfjMlXLT4ClM8yI';
+const TELEGRAM_CHAT_ID = '-1003661047589';
 // Email Configuration
 const ADMIN_EMAIL = 'muhammad.waliuddin@medivest.com.my';
 
@@ -280,27 +280,83 @@ async function submitToGoogleSheets(data) {
     }
 }
 
+// ============================================
+// LOAD REAL DATA FROM SPREADSHEET - FIXED VERSION
+// ============================================
 async function loadStatusData() {
+    console.log('🔄 Loading REAL data from spreadsheet...');
     showLoading();
     
     try {
-        // In production, fetch from Google Sheets
-        // UNCOMMENT LINE INI UNTUK PRODUCTION:
-        // const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData`);
-        // currentData = await response.json();
+        // ✅ 1. FETCH DARI GOOGLE SHEETS (REAL DATA)
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getRealData`);
         
-        // For demo, use mock data (COMMENT LINE INI UNTUK PRODUCTION)
-        currentData = getMockData();
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('📊 API Response:', result);
+        
+        // ✅ 2. CHECK JIKA ADA DATA REAL
+        if (result.success && result.data && result.data.length > 0) {
+            // GUNA DATA REAL DARI SPREADSHEET
+            currentData = result.data;
+            console.log(`✅ Loaded ${currentData.length} REAL records from Google Sheets`);
+            
+            // ✅ 3. CLEAR MOCKUP DATA DARI LOCALSTORAGE (optional)
+            localStorage.removeItem('mockDataUsed');
+            
+            // ✅ 4. TUNJUKKAN DATA REAL DENGAN FLAG
+            currentData = currentData.map(item => ({
+                ...item,
+                isRealData: true  // Flag untuk tunjuk ini data real
+            }));
+            
+            // Show success message
+            showMessage('statusMessage', 
+                `✅ Loaded ${currentData.length} live records from database`, 
+                'success');
+                
+        } else {
+            // ❌ JIKA TAK ADA DATA REAL, GUNA MOCKUP SEBAGAI FALLBACK
+            console.warn('⚠️ No real data found, using demo data');
+            currentData = getMockData().map(item => ({
+                ...item,
+                isRealData: false  // Flag untuk tunjuk ini mockup
+            }));
+            
+            showMessage('statusMessage', 
+                '⚠️ Using demo data - No records in database yet', 
+                'info');
+        }
+        
+        // ✅ 5. DISPLAY DATA
+        displayStatusData(currentData);
+        updateDroneCount();
+        
+        // Auto-hide message after 3 seconds
+        setTimeout(() => {
+            const statusMessage = document.getElementById('statusMessage');
+            if (statusMessage) statusMessage.classList.add('hidden');
+        }, 3000);
+        
+    } catch (error) {
+        console.error('❌ Error loading real data:', error);
+        
+        // Fallback to mockup data jika fetch gagal
+        currentData = getMockData().map(item => ({
+            ...item,
+            isRealData: false,
+            source: 'fallback'
+        }));
         
         displayStatusData(currentData);
         updateDroneCount();
         
-        const statusMessage = document.getElementById('statusMessage');
-        statusMessage.classList.add('hidden');
-        
-    } catch (error) {
-        console.error('Error loading data:', error);
-        showMessage('statusMessage', 'Failed to load data. Please try again.', 'error');
+        showMessage('statusMessage', 
+            `⚠️ Could not connect to server. Using demo data.`, 
+            'error');
     } finally {
         hideLoading();
     }
@@ -483,8 +539,8 @@ function createStatusCard(item) {
     let showActions = true;
     let actionButton = '';
     
-    // Auto-update status based on date
-    if (status === 'Booked' && bookingDate === today) {
+    // Auto-update status based on date (only for demo data)
+    if (!item.isRealData && status === 'Booked' && bookingDate === today) {
         status = 'Using';
         statusClass = 'using';
     }
@@ -512,20 +568,31 @@ function createStatusCard(item) {
         <div class="status-card" data-id="${item.id}">
             <div class="status-header">
                 <div>
-                    <h3>${item.model} 
-                        <span class="site-badge">${item.site}</span>
+                    <h3>${item.model || 'Unknown Model'} 
+                        <span class="site-badge">${item.site || 'Unknown Site'}</span>
+                        ${item.isRealData ? 
+                            '<span class="real-data-badge">LIVE</span>' : 
+                            '<span class="demo-data-badge">DEMO</span>'
+                        }
                     </h3>
                     <small>ID: ${item.id}</small>
                 </div>
                 <span class="status-indicator ${statusClass}">${status}</span>
             </div>
+
+            ${!item.isRealData ? `
+                <div class="demo-notice">        
+                    <i class="fas fa-info-circle"></i>
+                    This is demo data. Submit a real booking to see live records.
+                </div>
+            ` : ''}
             
             <div class="status-details">
                 <div class="detail-item">
                     <i class="fas fa-user"></i>
                     <div>
                         <strong>Borrower:</strong>
-                        <div>${item.name}</div>
+                        <div>${item.name || 'Unknown'}</div>
                     </div>
                 </div>
                 
@@ -533,7 +600,7 @@ function createStatusCard(item) {
                     <i class="fas fa-map-marker-alt"></i>
                     <div>
                         <strong>From Site:</strong>
-                        <div style="font-weight: 500; color: #1565c0;">${item.site}</div>
+                        <div style="font-weight: 500; color: #1565c0;">${item.site || 'Not specified'}</div>
                     </div>
                 </div>
                 
@@ -541,7 +608,7 @@ function createStatusCard(item) {
                     <i class="fas fa-bullseye"></i>
                     <div>
                         <strong>Purpose:</strong>
-                        <div>${item.purpose}</div>
+                        <div>${item.purpose || 'Not specified'}</div>
                     </div>
                 </div>
                 
@@ -549,7 +616,7 @@ function createStatusCard(item) {
                     <i class="fas fa-route"></i>
                     <div>
                         <strong>Destination:</strong>
-                        <div>${item.destination}</div>
+                        <div>${item.destination || 'Not specified'}</div>
                     </div>
                 </div>
                 
@@ -802,7 +869,7 @@ function getMockData() {
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    
+
     const sites = [
         'HQ', 'MSB - BRI', 'MSB - OFFICE ROMS', 'MSB - OFFICE RONS',
         'MSB - OFFICE RONJ', 'MSB - HSA', 'MSB - MKA', 'MSB - HTJ',
@@ -824,7 +891,9 @@ function getMockData() {
             dateTaken: today,
             timeTaken: "09:00",
             status: "Using",
-            timestamp: new Date(Date.now() - 3600000).toISOString()
+            timestamp: new Date().toISOString(),
+            isRealData: false,  // ⭐ TAMBAH INI ⭐
+            note: "This is demo data - Submit a real booking to see live data"
         },
         {
             id: 2,
@@ -836,7 +905,9 @@ function getMockData() {
             dateTaken: tomorrow,
             timeTaken: "14:30",
             status: "Booked",
-            timestamp: new Date(Date.now() - 86400000).toISOString()
+            timestamp: new Date().toISOString(),
+            isRealData: false,  // ⭐ TAMBAH INI ⭐
+            note: "This is demo data - Submit a real booking to see live data"
         },
         {
             id: 3,
@@ -848,7 +919,9 @@ function getMockData() {
             dateTaken: yesterday,
             timeTaken: "10:00",
             status: "Returned",
-            timestamp: new Date(Date.now() - 172800000).toISOString()
+            timestamp: new Date().toISOString(),
+            isRealData: false,  // ⭐ TAMBAH INI ⭐
+            note: "This is demo data - Submit a real booking to see live data"
         },
     ];
 }
