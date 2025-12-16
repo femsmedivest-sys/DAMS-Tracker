@@ -3,7 +3,7 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw8MW9EUuBDa9QoPOk21_96bgSbko1LwjI8Qg8NBswCqvt-Fm1_bbiJUyrBfksDlVP/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgFM_CuYt2Hw_3R5P1PgnX4Ooq3BJK55-HgXz1AiWbfgG3hTnv_Z7MFrTggzGwJQbP/exec';
 // Telegram Configuration (dapatkan dari @BotFather)
 const TELEGRAM_BOT_TOKEN = '8354996644:AAG2GEND5Ry4LFFwwe7VyfjMlXLT4ClM8yI';
 const TELEGRAM_CHAT_ID = '-1003661047589';
@@ -256,110 +256,164 @@ async function submitToGoogleSheets(data) {
         // ✅ CRITICAL FIX: Use text/plain Content-Type
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'cors',  // ⭐ Gunakan 'cors' bukan 'no-cors'
+            credentials: 'omit',  // ⭐ Penting untuk CORS
             headers: {
-                'Content-Type': 'text/plain;charset=utf-8', // NOT application/json
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify(payload)
         });
         
-        console.log('📥 Response status:', response.status, response.statusText);
+        console.log('📥 Response status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('✅ Google Sheets response:', result);
+        console.log('✅ Response:', result);
         return result;
         
     } catch (error) {
-        console.error('❌ Error submitting to Google Sheets:', error);
-        console.log('URL:', GOOGLE_SCRIPT_URL);
-        console.log('Payload:', payload);
+        console.error('❌ Error:', error);
+
+        // ✅ OPTION 2: Fallback menggunakan JSONP style
+        return await submitViaJsonp(payload);
+    }
+}
+
+// ✅ ALTERNATIVE: JSONP method untuk bypass CORS
+function submitViaJsonp(payload) {
+    return new Promise((resolve, reject) => {
+        // Create unique callback name
+        const callbackName = 'callback_' + Date.now();
+        
+        // Create script element
+        const script = document.createElement('script');
+        
+        // URL with callback parameter
+        const url = `${GOOGLE_SCRIPT_URL}?action=submit&callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(payload.data))}`;
+        
+        script.src = url;
+        
+        // Define callback function
+        window[callbackName] = function(response) {
+            // Clean up
+            delete window[callbackName];
+            document.body.removeChild(script);
+            
+            resolve(response);
+        };
+
+        // Add error handling
+        script.onerror = function() {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            reject(new Error('JSONP request failed'));
+        };
+
+         // Add to page
+        document.body.appendChild(script);
+     });
+}
+
+// ✅ OPTION 3: Proxy via your own server
+async function submitViaProxy(data) {
+    try {
+        // Jika anda ada server sendiri, gunakan sebagai proxy
+        const response = await fetch('/api/submit-drone-booking', {
+              method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Proxy error:', error);
         throw error;
     }
 }
 
-// ============================================
-// LOAD REAL DATA FROM SPREADSHEET - FIXED VERSION
-// ============================================
+
 async function loadStatusData() {
-    console.log('🔄 Loading REAL data from spreadsheet...');
     showLoading();
     
     try {
-        // ✅ 1. FETCH DARI GOOGLE SHEETS (REAL DATA)
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getRealData`);
+        // ✅ Gunakan fetch dengan error handling untuk CORS
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData&_=${Date.now()}`, {
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'omit',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        console.log('Response status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // Try alternative method
+            return await loadDataAlternative();
         }
         
         const result = await response.json();
-        console.log('📊 API Response:', result);
         
-        // ✅ 2. CHECK JIKA ADA DATA REAL
-        if (result.success && result.data && result.data.length > 0) {
-            // GUNA DATA REAL DARI SPREADSHEET
+        if (result.result === 'success' && result.data) {
             currentData = result.data;
-            console.log(`✅ Loaded ${currentData.length} REAL records from Google Sheets`);
-            
-            // ✅ 3. CLEAR MOCKUP DATA DARI LOCALSTORAGE (optional)
-            localStorage.removeItem('mockDataUsed');
-            
-            // ✅ 4. TUNJUKKAN DATA REAL DENGAN FLAG
-            currentData = currentData.map(item => ({
-                ...item,
-                isRealData: true  // Flag untuk tunjuk ini data real
-            }));
-            
-            // Show success message
-            showMessage('statusMessage', 
-                `✅ Loaded ${currentData.length} live records from database`, 
-                'success');
-                
+            console.log(`✅ Loaded ${currentData.length} records`);
         } else {
-            // ❌ JIKA TAK ADA DATA REAL, GUNA MOCKUP SEBAGAI FALLBACK
-            console.warn('⚠️ No real data found, using demo data');
-            currentData = getMockData().map(item => ({
-                ...item,
-                isRealData: false  // Flag untuk tunjuk ini mockup
-            }));
-            
-            showMessage('statusMessage', 
-                '⚠️ Using demo data - No records in database yet', 
-                'info');
+            currentData = getMockData();
         }
         
-        // ✅ 5. DISPLAY DATA
         displayStatusData(currentData);
         updateDroneCount();
-        
-        // Auto-hide message after 3 seconds
-        setTimeout(() => {
-            const statusMessage = document.getElementById('statusMessage');
-            if (statusMessage) statusMessage.classList.add('hidden');
-        }, 3000);
         
     } catch (error) {
-        console.error('❌ Error loading real data:', error);
-        
-        // Fallback to mockup data jika fetch gagal
-        currentData = getMockData().map(item => ({
-            ...item,
-            isRealData: false,
-            source: 'fallback'
-        }));
-        
+        console.error('Error loading data:', error);
+        currentData = getMockData();
         displayStatusData(currentData);
         updateDroneCount();
-        
-        showMessage('statusMessage', 
-            `⚠️ Could not connect to server. Using demo data.`, 
-            'error');
     } finally {
         hideLoading();
     }
+}
+
+// ✅ ALTERNATIVE DATA LOADING METHODS
+async function loadDataAlternative() {
+    try {
+        // Method 1: Try with no-cors
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData`, {
+            mode: 'no-cors',
+            credentials: 'omit'
+        });
+        
+        // Method 2: Try JSONP
+        return await loadDataViaJsonp();
+        
+    } catch (error) {
+        console.error('All methods failed, using mock data');
+        return getMockData();
+    }
+}
+
+async function loadDataViaJsonp() {
+    return new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_callback_' + Date.now();
+        const script = document.createElement('script');
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            resolve(data);
+        };
+        
+        script.src = `${GOOGLE_SCRIPT_URL}?action=getData&callback=${callbackName}`;
+        script.onerror = reject;
+        
+        document.body.appendChild(script);
+    });
 }
 
 // ============================================
@@ -990,11 +1044,7 @@ async function sendTelegramMessage(message) {
         
         return await response.json();
     } catch (error) {
-        console.error('Error sending reminder:', error);
-        return null;
+        console.error('Proxy error:', error);
+        throw error;
     }
 }
-
-// ============================================
-// END OF FILE
-// ============================================
