@@ -103,9 +103,9 @@ body::before {
 
 /* Update cards transparency */
 .welcome-card {
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.479);
     backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0);
     padding: 2rem;
     border-radius: 15px;
     margin-bottom: 2rem;
@@ -153,9 +153,9 @@ body::before {
 }
 
 .stat-card {
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.479);
     backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.0);
     padding: 1.5rem;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -451,7 +451,7 @@ textarea {
     backdrop-filter: blur(5px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 0.75rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-left: 5px solid var(--secondary);
     transition: transform 0.3s;
@@ -466,8 +466,8 @@ textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.25rem;
     border-bottom: 1px solid rgba(238, 238, 238, 0.6);
 }
 
@@ -517,7 +517,8 @@ textarea {
 .detail-item {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
+    margin-bottom: 0.25rem;
 }
 
 .detail-item i {
@@ -527,7 +528,7 @@ textarea {
 }
 
 .status-actions {
-    margin-top: 1.5rem;
+    margin-top: 0.5rem;
     display: flex;
     gap: 1rem;
 }
@@ -647,9 +648,9 @@ textarea {
 }
 
 .modal-content {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.158);
+    /*backdrop-filter: blur(5px);*/
+    border: 1px solid rgba(255, 255, 255, 0.0);
     padding: 2rem;
     border-radius: 12px;
     max-width: 500px;
@@ -861,4 +862,49 @@ textarea {
     .modal-content {
         padding: 1.5rem;
     }
+}
+
+/* =========================== */
+/* REAL vs DEMO DATA BADGES */
+/* =========================== */
+.real-data-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-left: 8px;
+    animation: pulse-green 2s infinite;
+}
+
+.demo-data-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF9800, #EF6C00);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.demo-notice {
+    background: rgba(255, 243, 205, 0.9);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-size: 0.85rem;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes pulse-green {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }

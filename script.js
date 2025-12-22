@@ -3,12 +3,48 @@
 // ============================================
 
 // Google Apps Script URL (dapatkan selepas deploy)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgFM_CuYt2Hw_3R5P1PgnX4Ooq3BJK55-HgXz1AiWbfgG3hTnv_Z7MFrTggzGwJQbP/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2z0am2QEIDi_TBC2K5kY9Y1XJa_y0VtDBNxG8TK8IET-kgFg8lHhtR-GwT9Ie72LM/exec';
 // Telegram Configuration (dapatkan dari @BotFather)
 const TELEGRAM_BOT_TOKEN = '8354996644:AAG2GEND5Ry4LFFwwe7VyfjMlXLT4ClM8yI';
 const TELEGRAM_CHAT_ID = '-1003661047589';
 // Email Configuration
 const ADMIN_EMAIL = 'muhammad.waliuddin@medivest.com.my';
+// CLOUDFLARE CONFIGURATION
+const USE_CLOUDFLARE_PROXY = false; // Set false untuk test direct connection
+const CLOUDFLARE_WORKER_URL = 'https://silent-fog-b55a.femsmedivest.workers.dev'; // Ganti dengan URL worker Anda
+
+// ============================================
+// DYNAMIC API URL BASED ON CONFIGURATION
+// ============================================
+const API_URL = USE_CLOUDFLARE_PROXY ? CLOUDFLARE_WORKER_URL : GOOGLE_SCRIPT_URL;
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+// Format timestamp in Malaysia timezone without 'Z'
+function formatTimestamp(date = new Date()) {
+    return date.toLocaleString('en-MY', {
+        timeZone: 'Asia/Kuala_Lumpur',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    }).replace(',', '');
+}
+
+// Get current date in YYYY-MM-DD format
+function getCurrentDate() {
+    const now = new Date();
+    return now.toLocaleDateString('en-MY', {
+        timeZone: 'Asia/Kuala_Lumpur',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).split('/').reverse().join('-');
+}
 
 // ============================================
 // SYSTEM STATE
@@ -81,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeSystem() {
     // Set minimum date to today
     const dateInput = document.getElementById('dateTaken');
-    const today = new Date().toISOString().split('T')[0];
+    const today = getCurrentDate();
     dateInput.min = today;
     dateInput.value = today;
     
@@ -168,7 +204,7 @@ droneForm.addEventListener('submit', async (e) => {
         destination: document.getElementById('destination').value.trim(),
         dateTaken: document.getElementById('dateTaken').value,
         timeTaken: document.getElementById('timeTaken').value,
-        timestamp: new Date().toISOString(),
+        timestamp: formatTimestamp(),
         status: 'Booked',
         notifyTelegram: document.getElementById('notifyTelegram').checked,
         notifyEmail: document.getElementById('notifyEmail').checked
@@ -187,8 +223,8 @@ droneForm.addEventListener('submit', async (e) => {
         
         console.log('📋 Form submission response:', response);
         
-        // ✅ CRITICAL FIX: Check response.success BUKAN response.result
-        if (response.success === true) {  
+        // ✅ CRITICAL FIX: Check response.result BUKAN response.success
+        if (response.result === 'success') {  
             // Send notifications if enabled
             if (formData.notifyTelegram) {
                 await sendTelegramNotification('booking', formData);
@@ -244,40 +280,45 @@ function clearForm() {
 // ============================================
 // GOOGLE SHEETS INTEGRATION - FIXED VERSION
 // ============================================
+// ============================================
+// GOOGLE SHEETS INTEGRATION - CLOUDFLARE COMPATIBLE
+// ============================================
 async function submitToGoogleSheets(data) {
     const payload = {
         action: 'submit',
         data: data
     };
     
-    console.log('📤 Sending to Google Sheets...');
+    console.log('📤 Sending data...');
     
     try {
-        // ✅ CRITICAL FIX: Use text/plain Content-Type
+        // OPTION 1: Gunakan Cloudflare Worker jika diaktifkan
+        if (USE_CLOUDFLARE_PROXY) {
+            return await submitViaCloudflareWorker(payload);
+        }
+        
+        // OPTION 2: Direct to Google Apps Script (original)
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'cors',  // ⭐ Gunakan 'cors' bukan 'no-cors'
-            credentials: 'omit',  // ⭐ Penting untuk CORS
+            mode: 'cors',
+            credentials: 'omit',
             headers: {
                 'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify(payload)
         });
         
-        console.log('📥 Response status:', response.status);
-        
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('✅ Response:', result);
         return result;
         
     } catch (error) {
         console.error('❌ Error:', error);
-
-        // ✅ OPTION 2: Fallback menggunakan JSONP style
+        
+        // Fallback to JSONP
         return await submitViaJsonp(payload);
     }
 }
@@ -341,7 +382,12 @@ async function loadStatusData() {
     showLoading();
     
     try {
-        // ✅ Gunakan fetch dengan error handling untuk CORS
+        // OPTION 1: Gunakan Cloudflare Worker jika diaktifkan
+        if (USE_CLOUDFLARE_PROXY) {
+            return await loadDataViaCloudflareWorker();
+        }
+        
+        // OPTION 2: Direct to Google Apps Script (original)
         const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData&_=${Date.now()}`, {
             method: 'GET',
             mode: 'cors',
@@ -414,6 +460,125 @@ async function loadDataViaJsonp() {
         
         document.body.appendChild(script);
     });
+}
+
+// ============================================
+// CLOUDFLARE WORKER INTEGRATION
+// ============================================
+async function submitViaCloudflareWorker(payload) {
+    try {
+        const response = await fetch(CLOUDFLARE_WORKER_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                endpoint: GOOGLE_SCRIPT_URL,
+                payload: payload
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Cloudflare Worker error: ${response.status}`);
+        }
+        
+        return await response.json();
+        
+    } catch (error) {
+        console.error('Cloudflare Worker error:', error);
+        throw error;
+    }
+}
+
+// ============================================
+// LOAD DATA VIA CLOUDFLARE WORKER
+// ============================================
+async function loadDataViaCloudflareWorker() {
+    try {
+        const response = await fetch(`${CLOUDFLARE_WORKER_URL}?action=getData&_=${Date.now()}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Cloudflare Worker error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.result === 'success' && result.data) {
+            currentData = result.data;
+            console.log(`✅ Loaded ${currentData.length} records via Cloudflare`);
+        } else {
+            currentData = getMockData();
+        }
+        
+        displayStatusData(currentData);
+        updateDroneCount();
+        
+    } catch (error) {
+        console.error('Cloudflare Worker load error:', error);
+        currentData = getMockData();
+        displayStatusData(currentData);
+        updateDroneCount();
+    } finally {
+        hideLoading();
+    }
+}
+
+// ============================================
+// LOAD DATA - CLOUDFLARE COMPATIBLE
+// ============================================
+async function loadStatusData() {
+    showLoading();
+    
+    try {
+        // Gunakan Cloudflare Worker jika diaktifkan
+        if (USE_CLOUDFLARE_PROXY) {
+            const response = await fetch(`${CLOUDFLARE_WORKER_URL}?action=getData&endpoint=${encodeURIComponent(GOOGLE_SCRIPT_URL)}`);
+            const result = await response.json();
+            
+            if (result.result === 'success' && result.data) {
+                currentData = result.data;
+            } else {
+                currentData = getMockData();
+            }
+        } else {
+            // Original method
+            const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData&_=${Date.now()}`, {
+                method: 'GET',
+                mode: 'cors',
+                credentials: 'omit',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                currentData = getMockData();
+            } else {
+                const result = await response.json();
+                if (result.result === 'success' && result.data) {
+                    currentData = result.data;
+                } else {
+                    currentData = getMockData();
+                }
+            }
+        }
+        
+        displayStatusData(currentData);
+        updateDroneCount();
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        currentData = getMockData();
+        displayStatusData(currentData);
+        updateDroneCount();
+    } finally {
+        hideLoading();
+    }
 }
 
 // ============================================
@@ -525,6 +690,83 @@ async function sendEmailNotification(type, data) {
 }
 
 // ============================================
+// BACKEND TELEGRAM NOTIFICATION FUNCTION
+// ============================================
+async function sendBackendTelegramNotification(type, data) {
+    console.log('📱 Sending backend telegram notification:', type);
+    
+    const telegramData = {
+        action: 'sendTelegram',
+        type: type,
+        data: data
+    };
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify(telegramData)
+        });
+        
+        const result = await response.json();
+        console.log('📱 Backend telegram response:', result);
+        
+        if (result.result === 'success') {
+            console.log('✅ Backend telegram sent successfully');
+            return true;
+        } else {
+            console.error('❌ Failed to send backend telegram:', result.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error sending backend telegram notification:', error);
+        return false;
+    }
+}
+
+// ============================================
+// UPDATE BOOKING STATUS FUNCTION
+// ============================================
+async function updateBookingStatus(recordId, newStatus, meta = {}) {
+    console.log('🔄 Updating booking status:', recordId, 'to', newStatus, 'meta:', meta);
+    
+    const updateData = {
+        action: 'updateStatus',
+        id: recordId,
+        status: newStatus
+    };
+
+    if (meta.returnSite !== undefined) updateData.returnSite = meta.returnSite;
+    if (meta.passTo !== undefined) updateData.passTo = meta.passTo;
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify(updateData)
+        });
+        
+        const result = await response.json();
+        console.log('📊 Update status response:', result);
+        
+        if (result.result === 'success') {
+            console.log('✅ Status updated successfully');
+            return true;
+        } else {
+            console.error('❌ Failed to update status:', result.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error updating booking status:', error);
+        return false;
+    }
+}
+
+// ============================================
 // STATUS DISPLAY FUNCTIONS
 // ============================================
 function displayStatusData(data) {
@@ -541,7 +783,28 @@ function displayStatusData(data) {
     const siteFilterValue = siteFilter.value;
     const statusFilterValue = statusFilter.value;
     
-    const filteredData = data.filter(item => {
+    // Sort data: Active bookings (Booked/Using) first, then completed (Cancelled/Returned)
+    const sortedData = data.sort((a, b) => {
+        const statusA = a.status || 'Booked';
+        const statusB = b.status || 'Booked';
+        
+        // Define priority order: Booked/Using = 1, Cancelled/Returned = 2
+        const getPriority = (status) => {
+            return (status === 'Booked' || status === 'Using') ? 1 : 2;
+        };
+        
+        const priorityA = getPriority(statusA);
+        const priorityB = getPriority(statusB);
+        
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        
+        // If same priority, sort by date taken (newest first)
+        return new Date(b.dateTaken || 0) - new Date(a.dateTaken || 0);
+    });
+    
+    const filteredData = sortedData.filter(item => {
         // Search filter
         const matchesSearch = 
             item.name.toLowerCase().includes(searchTerm) ||
@@ -586,7 +849,7 @@ function displayStatusData(data) {
 }
 
 function createStatusCard(item) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getCurrentDate();
     const bookingDate = item.dateTaken;
     let status = item.status || 'Booked';
     let statusClass = status.toLowerCase();
@@ -677,25 +940,17 @@ function createStatusCard(item) {
                 <div class="detail-item">
                     <i class="fas fa-calendar"></i>
                     <div>
-                        <strong>Date Taken:</strong>
-                        <div>${formatDate(item.dateTaken)}</div>
+                        <strong>Date & Time Taken:</strong>
+                        <div>${formatDateTimeCombined(item.dateTaken, item.timeTaken)}</div>
                     </div>
                 </div>
                 
+                ${item.status === 'Returned' && (item.returnSite || item.passTo) ? `
                 <div class="detail-item">
-                    <i class="fas fa-clock"></i>
+                    <i class="fas fa-arrow-right"></i>
                     <div>
-                        <strong>Time Taken:</strong>
-                        <div>${formatTime(item.timeTaken)}</div>
-                    </div>
-                </div>
-                
-                ${item.timestamp ? `
-                <div class="detail-item">
-                    <i class="fas fa-history"></i>
-                    <div>
-                        <strong>Submitted:</strong>
-                        <div>${formatDateTime(item.timestamp)}</div>
+                        <strong>Returned to:</strong>
+                        <div>${item.returnSite || item.passTo}</div>
                     </div>
                 </div>
                 ` : ''}
@@ -726,10 +981,44 @@ function showCancelModal(id) {
 function showReturnModal(id) {
     const item = currentData.find(item => item.id == id);
     if (!item) return;
-    
+
     selectedAction = { type: 'return', id, item };
+
     modalTitle.textContent = 'Return Drone';
-    modalMessage.textContent = `Confirm that ${item.model} has been returned by ${item.name}?`;
+    modalMessage.innerHTML = `
+        <p>Confirm that <strong>${item.model}</strong> has been returned by <strong>${item.name}</strong>?</p>
+        <div style="margin: 15px 0">
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="returnOptionHTJ" class="return-option-btn" style="flex: 1; padding: 10px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fas fa-home"></i> Return to HTJ
+                </button>
+                <button id="returnOptionPass" class="return-option-btn" style="flex: 1; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fas fa-user-friends"></i> Pass to Someone
+                </button>
+            </div>
+        </div>
+        <div id="passToSection" style="display: none; margin-top: 10px;">
+            <label>Pass To: <input id="passToInput" type="text" placeholder="Enter name to pass to" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" /></label>
+        </div>
+    `;
+
+    // Add event listeners for the option buttons
+    setTimeout(() => {
+        document.getElementById('returnOptionHTJ').addEventListener('click', () => {
+            selectedAction.returnType = 'htj';
+            document.querySelectorAll('.return-option-btn').forEach(btn => btn.style.opacity = '0.5');
+            document.getElementById('returnOptionHTJ').style.opacity = '1';
+            document.getElementById('passToSection').style.display = 'none';
+        });
+
+        document.getElementById('returnOptionPass').addEventListener('click', () => {
+            selectedAction.returnType = 'pass';
+            document.querySelectorAll('.return-option-btn').forEach(btn => btn.style.opacity = '0.5');
+            document.getElementById('returnOptionPass').style.opacity = '1';
+            document.getElementById('passToSection').style.display = 'block';
+        });
+    }, 100);
+
     actionModal.classList.remove('hidden');
 }
 
@@ -745,25 +1034,64 @@ confirmModal.addEventListener('click', async () => {
         showLoading();
         
         if (selectedAction.type === 'cancel') {
-            // Update status
+            // Update status in spreadsheet first
+            const updateSuccess = await updateBookingStatus(selectedAction.item.id, 'Cancelled');
+            if (!updateSuccess) {
+                throw new Error('Failed to update status in spreadsheet');
+            }
+            
+            // Update status locally
             selectedAction.item.status = 'Cancelled';
             
-            // Send notifications
-            await sendTelegramNotification('cancelled', selectedAction.item);
+            // Send notifications (backend handles Telegram to avoid duplicates)
             await sendEmailNotification('cancelled', selectedAction.item);
+            await sendBackendTelegramNotification('cancelled', selectedAction.item);
             
         } else if (selectedAction.type === 'return') {
-            // Update status
+            // Check if return type is selected
+            if (!selectedAction.returnType) {
+                alert('Please select a return option (HTJ or Pass).');
+                hideLoading();
+                return;
+            }
+
+            let returnSite = '';
+            let passTo = '';
+
+            if (selectedAction.returnType === 'htj') {
+                returnSite = 'HTJ';
+                passTo = '';
+            } else {
+                // For pass type, get the pass-to input
+                passTo = document.getElementById('passToInput') ? document.getElementById('passToInput').value.trim() : '';
+                if (!passTo) {
+                    alert('Please enter a name to pass to.');
+                    hideLoading();
+                    return;
+                }
+            }
+
+            // Update status in spreadsheet first (include metadata)
+            const updateSuccess = await updateBookingStatus(selectedAction.item.id, 'Returned', { returnSite, passTo });
+            if (!updateSuccess) {
+                throw new Error('Failed to update status in spreadsheet');
+            }
+
             selectedAction.item.status = 'Returned';
+            selectedAction.item.returnSite = returnSite;
+            selectedAction.item.passTo = passTo;
             
-            // Send notifications
-            await sendTelegramNotification('returned', selectedAction.item);
+            // Send notifications (backend handles Telegram to avoid duplicates)
             await sendEmailNotification('returned', selectedAction.item);
+            await sendBackendTelegramNotification('returned', selectedAction.item);
         }
         
         // Update display
         displayStatusData(currentData);
         updateDroneCount();
+        
+        // Auto refresh data from spreadsheet after status change
+        await loadStatusData();
         
         // Show success message
         const actionText = selectedAction.type === 'cancel' ? 'cancelled' : 'returned';
@@ -846,19 +1174,39 @@ function formatDate(dateString) {
 
 function formatTime(timeString) {
     if (!timeString) return 'N/A';
+
+    // If it's already in HH:mm format, convert to 12-hour with AM/PM
+    if (timeString.match(/^\d{1,2}:\d{2}$/)) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+
     return timeString;
 }
 
-function formatDateTime(dateTimeString) {
-    if (!dateTimeString) return 'N/A';
-    const date = new Date(dateTimeString);
-    return date.toLocaleString('en-MY', {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: 'numeric',
+function formatDateTimeCombined(dateString, timeString) {
+    if (!dateString || !timeString) return 'N/A';
+
+    const date = new Date(dateString);
+    const datePart = date.toLocaleDateString('en-MY', {
+        weekday: 'short',
+        year: 'numeric',
         month: 'short',
-        year: 'numeric'
+        day: 'numeric'
     });
+
+    // If it's already in HH:mm format, convert to 12-hour with AM/PM
+    let timePart = timeString;
+    if (timeString.match(/^\d{1,2}:\d{2}$/)) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        timePart = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+
+    return `${datePart}, ${timePart}`;
 }
 
 function showMessage(elementId, message, type) {
@@ -896,11 +1244,12 @@ printBtn.addEventListener('click', () => {
 
 function exportToExcel() {
     // Create CSV content
-    let csv = 'ID,Name,Site,Model,Purpose,Destination,Date Taken,Time Taken,Status,Timestamp\n';
-    
+    let csv = 'ID,Name,Site,Model,Purpose,Destination,Date & Time Taken,Status,Timestamp\n';
+
     currentData.forEach(item => {
+        const dateTimeCombined = formatDateTimeCombined(item.dateTaken, item.timeTaken);
         csv += `"${item.id}","${item.name}","${item.site}","${item.model}","${item.purpose}",` +
-               `"${item.destination}","${item.dateTaken}","${item.timeTaken}","${item.status}",` +
+               `"${item.destination}","${dateTimeCombined}","${item.status}",` +
                `"${item.timestamp || ''}"\n`;
     });
     
@@ -909,7 +1258,7 @@ function exportToExcel() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dams_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `dams_export_${getCurrentDate()}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -920,9 +1269,19 @@ function exportToExcel() {
 // MOCK DATA FOR DEMO
 // ============================================
 function getMockData() {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const today = getCurrentDate();
+    const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('en-MY', {
+        timeZone: 'Asia/Kuala_Lumpur',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).split('/').reverse().join('-');
+    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-MY', {
+        timeZone: 'Asia/Kuala_Lumpur',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).split('/').reverse().join('-');
 
     const sites = [
         'HQ', 'MSB - BRI', 'MSB - OFFICE ROMS', 'MSB - OFFICE RONS',
@@ -945,7 +1304,7 @@ function getMockData() {
             dateTaken: today,
             timeTaken: "09:00",
             status: "Using",
-            timestamp: new Date().toISOString(),
+            timestamp: formatTimestamp(),
             isRealData: false,  // ⭐ TAMBAH INI ⭐
             note: "This is demo data - Submit a real booking to see live data"
         },
@@ -959,7 +1318,7 @@ function getMockData() {
             dateTaken: tomorrow,
             timeTaken: "14:30",
             status: "Booked",
-            timestamp: new Date().toISOString(),
+            timestamp: formatTimestamp(),
             isRealData: false,  // ⭐ TAMBAH INI ⭐
             note: "This is demo data - Submit a real booking to see live data"
         },
@@ -973,7 +1332,7 @@ function getMockData() {
             dateTaken: yesterday,
             timeTaken: "10:00",
             status: "Returned",
-            timestamp: new Date().toISOString(),
+            timestamp: formatTimestamp(),
             isRealData: false,  // ⭐ TAMBAH INI ⭐
             note: "This is demo data - Submit a real booking to see live data"
         },
