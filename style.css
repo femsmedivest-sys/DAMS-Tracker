@@ -908,3 +908,28 @@ textarea {
     50% { opacity: 0.7; }
     100% { opacity: 1; }
 }
+
+/* Reset style default iPhone untuk date & time */
+input[type="date"],
+input[type="time"] {
+    -webkit-appearance: none; /* Ini paling penting untuk iPhone */
+    appearance: none;
+    
+    display: block; /* Pastikan dia ambil satu baris penuh */
+    width: 100%;    /* Lebar penuh ikut container */
+    
+    /* Style supaya sama dengan kotak input lain */
+    padding: 12px 15px; /* Adjust ikut padding kotak atas awak */
+    background-color: #ffffff;
+    border: none;   /* Atau border: 1px solid #ccc kalau ada border */
+    border-radius: 10px; /* Ikut radius kotak atas */
+    
+    /* Font setting */
+    font-family: sans-serif; /* Atau font yg awak guna */
+    font-size: 16px; /* Wajib 16px ke atas supaya iPhone tak auto-zoom bila tekan */
+    color: #333;
+    
+    /* Pastikan padding tak kacau saiz kotak */
+    box-sizing: border-box; 
+    margin-top: 5px; /* Jarak sikit dari label */
+}
